@@ -18,7 +18,7 @@ else:
     st.warning("Please enter your Gemini API key to proceed.")
     st.stop()
 
-# ---------------- Input Method Selection ----------------
+# ---------------- Input Method ----------------
 input_method = st.radio(
     "Choose input method:",
     ("Paste Text", "Upload File")
@@ -48,6 +48,7 @@ if st.button("Extract Entities"):
             Text: {txt_input}
             """
 
+            # ---------------- Gemini Chat API ----------------
             response = genai.chat.completions.create(
                 model="gemini-1.5-chat",
                 messages=[
@@ -57,7 +58,7 @@ if st.button("Extract Entities"):
             )
             text_response = response.choices[0].message.content
 
-            # Parse JSON
+            # ---------------- Parse JSON ----------------
             try:
                 entities = json.loads(text_response)
             except Exception:
@@ -65,14 +66,15 @@ if st.button("Extract Entities"):
                 st.code(text_response)
                 entities = []
 
+            # ---------------- Display Results ----------------
             if entities:
                 df = pd.DataFrame(entities)
                 st.subheader("Entities Table")
                 st.dataframe(df)
 
-                # Highlight entities in text
                 st.subheader("Entities Highlighted in Text")
                 highlighted_text = txt_input
+                # highlight from end to start to preserve indexes
                 for ent in sorted(entities, key=lambda x: x.get("start_char", 0), reverse=True):
                     start = ent.get("start_char")
                     end = ent.get("end_char")
