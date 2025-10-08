@@ -47,8 +47,8 @@ if st.button("Extract Entities"):
             Text: {txt_input}
             """
 
-            # ---------------- OpenAI ChatCompletion ----------------
-            response = openai.ChatCompletion.create(
+            # ---------------- OpenAI ChatCompletion (1.x) ----------------
+            response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}]
             )
