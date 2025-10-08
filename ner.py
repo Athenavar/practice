@@ -11,12 +11,9 @@ st.markdown(
 )
 
 # ---------------- Gemini API Key ----------------
-api_key = st.text_input("Enter your Gemini API Key:", type="password")
-if api_key:
-    genai.configure(api_key=api_key)
-else:
-    st.warning("Please enter your Gemini API key to proceed.")
-    st.stop()
+# 🔑 Directly enter your API key here
+GENIE_API_KEY = "AIzaSyA-DJFRmNiHFM5usQcZr0CfEHcvh50blVI"
+genai.configure(api_key=GENIE_API_KEY)
 
 # ---------------- Input Method ----------------
 input_method = st.radio(
@@ -74,7 +71,6 @@ if st.button("Extract Entities"):
 
                 st.subheader("Entities Highlighted in Text")
                 highlighted_text = txt_input
-                # highlight from end to start to preserve indexes
                 for ent in sorted(entities, key=lambda x: x.get("start_char", 0), reverse=True):
                     start = ent.get("start_char")
                     end = ent.get("end_char")
