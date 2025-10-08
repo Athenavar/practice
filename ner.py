@@ -1,19 +1,21 @@
 import streamlit as st
 import pandas as pd
 import json
-import google.generativeai as genai
+import openai
 
 # ---------------- Page Setup ----------------
-st.set_page_config(page_title="Universal NER with Gemini", layout="wide")
-st.title("Universal Domain-Aware NER (Google Gemini)")
+st.set_page_config(page_title="Universal NER with OpenAI", layout="wide")
+st.title("Universal Domain-Aware NER (OpenAI NER)")
 st.markdown(
-    "Select an input method, provide your text or file, and click **Extract Entities**."
+    "Paste text or upload a .txt file, then click **Extract Entities**."
 )
 
-# ---------------- Gemini API Key ----------------
-# 🔑 Directly enter your API key here
-GENIE_API_KEY = "AIzaSyA-DJFRmNiHFM5usQcZr0CfEHcvh50blVI"
-genai.configure(api_key=GENIE_API_KEY)
+# ---------------- OpenAI API Key ----------------
+api_key = st.text_input("Enter your OpenAI API Key:", type="password")
+if not api_key:
+    st.warning("Please enter your OpenAI API key to proceed.")
+    st.stop()
+openai.api_key = api_key
 
 # ---------------- Input Method ----------------
 input_method = st.radio(
@@ -39,27 +41,25 @@ if st.button("Extract Entities"):
         st.subheader("Extracting Entities...")
         try:
             prompt = f"""
-            Extract all named entities from the following text and categorize them by domain
+            Extract all named entities from the following text and categorize them by type
             (Person, Organization, Location, Product, Law, Disease, etc.) in JSON format.
             Include the text, type, start_char, and end_char.
             Text: {txt_input}
             """
 
-            # ---------------- Gemini Chat API ----------------
-            response = genai.chat.completions.create(
-                model="gemini-1.5-chat",
-                messages=[
-                    {"role": "system", "content": "You are an expert NER assistant."},
-                    {"role": "user", "content": prompt}
-                ]
+            # ---------------- OpenAI ChatCompletion ----------------
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}]
             )
+
             text_response = response.choices[0].message.content
 
             # ---------------- Parse JSON ----------------
             try:
                 entities = json.loads(text_response)
             except Exception:
-                st.warning("Gemini returned non-JSON response. Showing raw text:")
+                st.warning("OpenAI returned non-JSON response. Showing raw text:")
                 st.code(text_response)
                 entities = []
 
@@ -83,7 +83,7 @@ if st.button("Extract Entities"):
                         )
                 st.markdown(highlighted_text, unsafe_allow_html=True)
 
-                # Download options
+                # ---------------- Download Options ----------------
                 st.subheader("Download")
                 st.download_button(
                     "Download JSON",
@@ -101,4 +101,4 @@ if st.button("Extract Entities"):
                 st.info("No entities detected.")
 
         except Exception as e:
-            st.error(f"Error calling Gemini API: {e}")
+            st.error(f"Error calling OpenAI API: {e}")
